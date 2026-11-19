@@ -30,7 +30,7 @@ Users can upload documents, search for files by filename, and download their doc
 
 
 
-\- \*\*GitHub Repository:\*\* \[Add GitHub Repository URL]
+\- \*\*GitHub Repository:\*\* \https://github.com/harsha6364/File-Storage-Service
 
 \- \*\*Live Application:\*\* \[Add Deployed Application URL]
 
