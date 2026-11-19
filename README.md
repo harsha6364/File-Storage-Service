@@ -30,9 +30,9 @@ Users can upload documents, search for files by filename, and download their doc
 
 
 
-\- \*\*GitHub Repository:\*\* \https://github.com/harsha6364/File-Storage-Service
+\- \*\*GitHub Repository:\*\* https://github.com/harsha6364/File-Storage-Service
 
-\- \*\*Live Application:\*\* \[Add Deployed Application URL]
+\- \*\*Live Application:\*\* http://3.88.199.212:8080/swagger-ui/index.html#/
 
 \- \*\*Swagger Documentation:\*\* \[Add Swagger URL]
 
