@@ -32,9 +32,8 @@ Users can upload documents, search for files by filename, and download their doc
 
 \- \*\*GitHub Repository:\*\* https://github.com/harsha6364/File-Storage-Service
 
-\- \*\*Live Application:\*\* http://3.88.199.212:8080/swagger-ui/index.html#/
-
-\- \*\*Swagger Documentation:\*\* \[Add Swagger URL]
+\- \*\*Live Application:\*\* http://3.88.199.212:8080/api/v1/files
+\- \*\*Swagger Documentation:\*\* http://3.88.199.212:8080/swagger-ui/index.html
 
 \- \*\*Loom Demo Video:\*\* \[Add Loom Video URL]
 
