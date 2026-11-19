@@ -27,7 +27,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @ExtendWith(MockitoExtension.class)
-public class FileStorageServiceImplTest {
+public class FileStorageServiceImplDownloadTest {
 
 	 	@Mock
 	    private S3Client s3Client;

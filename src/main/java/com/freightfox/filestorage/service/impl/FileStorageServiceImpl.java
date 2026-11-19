@@ -1,6 +1,5 @@
 package com.freightfox.filestorage.service.impl;
 
-import com.freightfox.filestorage.config.AppConfig;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,17 +28,14 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 @Service
 public class FileStorageServiceImpl implements FileStorageService{
 
-	private final AppConfig appConfig;
-
 	private final S3Client s3Client;
 	
 	@Value("${aws.s3.bucket-name}")
 	private String bucketName;
 	
-	public FileStorageServiceImpl(S3Client s3Client, AppConfig appConfig) {
-        this.s3Client = s3Client;
-		this.appConfig = appConfig;
-    }
+	public FileStorageServiceImpl(S3Client s3Client) {
+	    this.s3Client = s3Client;
+	}
 
 	@Override
 	public String upload(String userName, MultipartFile file) {
@@ -48,20 +44,33 @@ public class FileStorageServiceImpl implements FileStorageService{
 			throw new AppException("User name cannot be empty", HttpStatus.BAD_REQUEST);
 		}
 		
+		userName = userName.trim();
+		
+		if (userName.contains("/") || userName.contains("\\")) {
+		    throw new AppException(
+		            "Invalid username",
+		            HttpStatus.BAD_REQUEST
+		    );
+		}
+		
 		if(file == null || file.isEmpty()) {
 			throw new AppException("File cannot be empty",HttpStatus.BAD_REQUEST);
 		}
 		
-		 String originalFilename = file.getOriginalFilename();
+		
+		
+		String originalFilename = file.getOriginalFilename();
 		
 		if(originalFilename == null || originalFilename.isBlank()) {
 			throw new AppException("Invalid filename", HttpStatus.BAD_REQUEST);
 		}
 		
-		originalFilename = originalFilename
-		        .replace("/", "_")
-		        .replace("\\", "_")
-		        .trim();
+		originalFilename = originalFilename.trim();
+
+		if (originalFilename.contains("/") ||originalFilename.contains("\\")) {
+
+		    throw new AppException("Invalid filename",HttpStatus.BAD_REQUEST);
+		}
 		
 		String key = userName + "/" + originalFilename;
 		
@@ -83,9 +92,15 @@ public class FileStorageServiceImpl implements FileStorageService{
 			return key;
 			
 		} catch (S3Exception e) {
-			
-			throw new AppException("Failed to upload file to S3 :" + e.awsErrorDetails().errorMessage(), HttpStatus.BAD_GATEWAY);
-			
+
+		    String errorMessage = e.awsErrorDetails() != null
+		            ? e.awsErrorDetails().errorMessage()
+		            : "Unknown S3 error";
+
+		    throw new AppException(
+		            "Failed to upload file to S3: " + errorMessage,
+		            HttpStatus.BAD_GATEWAY
+		    );
 		} catch (SdkClientException e) {
 
 	        throw new AppException(
@@ -119,6 +134,9 @@ public class FileStorageServiceImpl implements FileStorageService{
 		if(fileName == null || fileName.isBlank()) {
 			throw new AppException("File name search term cannot be empty", HttpStatus.BAD_REQUEST);
 		}
+		
+		String trimmedUserName = userName.trim();
+		String searchTerm = fileName.trim();
 				
 		List<FileMetaDataDto> files = new ArrayList<>();
 
@@ -128,7 +146,7 @@ public class FileStorageServiceImpl implements FileStorageService{
 			while(true) {
 				ListObjectsV2Request request = ListObjectsV2Request.builder()
 						.bucket(bucketName)
-						.prefix(userName+"/")
+						.prefix(trimmedUserName + "/")
 						.continuationToken(continuationToken)
 						.build();
 				
@@ -140,7 +158,7 @@ public class FileStorageServiceImpl implements FileStorageService{
 									.substring(object.key().lastIndexOf("/")+1);
 							
 							return objectFilename.toLowerCase(Locale.ROOT)
-									.contains(fileName.toLowerCase(Locale.ROOT));
+									.contains(searchTerm.toLowerCase(Locale.ROOT));
 						})
 						.map(object ->new FileMetaDataDto(
 								object.key().substring(object.key().lastIndexOf("/") + 1),
