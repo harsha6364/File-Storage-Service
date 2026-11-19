@@ -1,9 +1,11 @@
 package com.freightfox.filestorage.controller;
 
 import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 
 import java.util.List;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -30,18 +32,33 @@ public class FileController {
 	}
 
 	@PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<?> uploadFile(
-			@RequestParam String userName,
-			@RequestPart("file") MultipartFile file){
+	public ResponseEntity<ApiResponse<String>> uploadFile(@RequestParam String userName,@RequestPart("file") MultipartFile file){
+		
 		String key = fileService.upload(userName, file);
 		return new ResponseEntity<>(new ApiResponse<>("File uploaded successfully",key,HttpStatus.OK),HttpStatus.OK);
+		
 	}
 	
 	@GetMapping("/search")
-	public ResponseEntity<?> searchFile(@RequestParam String userName, @RequestParam String fileName){
-		
-		List<FileMetaDataDto> files = fileService.searchFile(userName, fileName);
-		
-		return new ResponseEntity<>(new ApiResponse<>("Files retrieved successfully", files, HttpStatus.OK),HttpStatus.OK);
+	public ResponseEntity<ApiResponse<List<FileMetaDataDto>>> searchFile(@RequestParam String userName,@RequestParam String fileName) {
+
+	    List<FileMetaDataDto> files = fileService.searchFile(userName, fileName);
+
+	    return ResponseEntity.ok(new ApiResponse<>("Files retrieved successfully",files,HttpStatus.OK));
+	}
+	
+	@GetMapping("/download")
+	public ResponseEntity<byte[]> downloadFile(@RequestParam String userName,@RequestParam String fileName) {
+
+	    byte[] fileData = fileService.downloadFile(userName, fileName);
+
+	    return ResponseEntity.ok()
+	            .contentType(MediaTypeFactory.getMediaType(fileName)
+	                    .orElse(MediaType.APPLICATION_OCTET_STREAM))
+	            .header(
+	                    HttpHeaders.CONTENT_DISPOSITION,
+	                    "attachment; filename=\"" + fileName + "\""
+	            )
+	            .body(fileData);
 	}
 }

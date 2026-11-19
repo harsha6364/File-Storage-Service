@@ -1,5 +1,6 @@
 package com.freightfox.filestorage.service.impl;
 
+import com.freightfox.filestorage.config.AppConfig;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,9 +15,12 @@ import com.freightfox.filestorage.dto.FileMetaDataDto;
 import com.freightfox.filestorage.exception.AppException;
 import com.freightfox.filestorage.service.FileStorageService;
 
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -25,13 +29,16 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 @Service
 public class FileStorageServiceImpl implements FileStorageService{
 
+	private final AppConfig appConfig;
+
 	private final S3Client s3Client;
 	
 	@Value("${aws.s3.bucket-name}")
 	private String bucketName;
 	
-	public FileStorageServiceImpl(S3Client s3Client) {
+	public FileStorageServiceImpl(S3Client s3Client, AppConfig appConfig) {
         this.s3Client = s3Client;
+		this.appConfig = appConfig;
     }
 
 	@Override
@@ -161,9 +168,60 @@ public class FileStorageServiceImpl implements FileStorageService{
 	}
 
 	@Override
-	public byte[] downloadFile(String userName, String filename) {
-		// TODO Auto-generated method stub
-		return null;
+	public byte[] downloadFile(String userName, String fileName) {
+		
+		if(userName == null || userName.isBlank()) {
+			throw new AppException("User name cannot be empty",HttpStatus.BAD_REQUEST);
+		}
+		
+		if (userName.contains("/") || userName.contains("\\")) {
+		    throw new AppException("Invalid username",HttpStatus.BAD_REQUEST);
+		}
+		
+		if(fileName == null || fileName.isBlank()) {
+			throw new AppException("File name cannot be empty",HttpStatus.BAD_REQUEST);
+		}
+		
+		if (fileName.contains("/") || fileName.contains("\\")) {
+		    throw new AppException("Invalid filename",HttpStatus.BAD_REQUEST);
+		}
+		
+		userName = userName.trim();
+		fileName = fileName.trim();
+		
+		try {
+			
+			GetObjectRequest request = GetObjectRequest.builder()
+					.bucket(bucketName)
+					.key(userName+"/"+fileName)
+					.build();
+			
+			ResponseBytes<GetObjectResponse> response = s3Client.getObjectAsBytes(request);
+			
+			return response.asByteArray();
+			
+		} catch (S3Exception e) {
+
+		    if (e.statusCode() == 404) {
+		        throw new AppException(
+		                "File not found",
+		                HttpStatus.NOT_FOUND
+		        );
+		    }
+
+		    throw new AppException(
+		            "Failed to download file from S3",
+		            HttpStatus.BAD_GATEWAY
+		    );
+
+		} catch (SdkClientException e) {
+		    throw new AppException(
+		            "Unable to communicate with AWS S3",
+		            HttpStatus.SERVICE_UNAVAILABLE
+		    );
+		}
+		
+		
 	}
 	
 	
