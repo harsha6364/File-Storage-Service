@@ -36,7 +36,7 @@ Users can upload documents, search for files by filename, and download their doc
 
 \- \*\*Swagger Documentation:\*\* http://100.63.112.142:8080/swagger-ui/index.html#/
 
-\- \*\*Loom Demo Video:\*\* \[Add Loom Video URL]
+\- \*\*Loom Demo Video:\*\* https://www.loom.com/share/300e08a1fb04417db882fea9106e4714
 
 
 
