@@ -272,7 +272,7 @@ Downloads the requested document from Amazon S3.
 
 ```bash
 
-git clone <your-github-repository-url>
+git clone https://github.com/harsha6364/File-Storage-Service.git
 
 ```
 
